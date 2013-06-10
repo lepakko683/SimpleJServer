@@ -32,13 +32,27 @@ public class ConnectionHandler implements Runnable {
 		int count=0;
 		for(int i=0;i<connections.length;i++){
 			if(connections[i] != null){
-				if(connections[i].isUseless() && connections[i].isListenerStopped()){
+				if(connections[i].isListenerStopped()){
 					connections[i]=null;
 					count++;
 				}
 			}
 		}
 		return count;
+	}
+	
+	public void closeTimedOutConnections(){
+		for(int i=0;i<connections.length;i++){
+			if(connections[i] != null && connections[i].isTimedOut()){
+				try{
+					connections[i].forceCloseConnection();
+					System.out.println("interrupted id = " + i);
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+				
+			}
+		}
 	}
 	
 	public int getFreeSlot(){
@@ -53,6 +67,15 @@ public class ConnectionHandler implements Runnable {
 	public void setStopRequested(boolean value){
 		this.isStopRequested=value;
 	}
+	
+	public boolean allSlotsFree(){
+		for(int i=0;i<connections.length;i++){
+			if(connections[i]!=null){
+				return false;
+			}
+		}
+		return true;
+	}
 
 	@Override
 	public void run() {
@@ -64,10 +87,12 @@ public class ConnectionHandler implements Runnable {
 				e.printStackTrace();
 			}
 			//handle connections
+			closeTimedOutConnections();
 			int clearCount = emptyUselessSlots();
 			if(clearCount > 0){
 				System.out.println("Emptied " + clearCount + " useless slots!");
 			}
+			System.out.println(allSlotsFree());
 			//end
 		}
 		this.stopped = true;

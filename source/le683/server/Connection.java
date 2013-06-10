@@ -47,26 +47,44 @@ public class Connection extends Thread implements Runnable {
 		}
 	}
 	
-	public synchronized boolean isUseless(){
+	public synchronized boolean isTimedOut(){
 		return System.currentTimeMillis()-this.lastResponse >= 10000;
+	}
+	public synchronized void forceCloseConnection(){
+		try {
+			client.close();
+			client = null;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void run() {
 		try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-			while(!isUseless()){
-				String ln = br.readLine();
+			while(!isTimedOut() && client != null){
+				
+				String ln = null;
+				try{
+					ln = br.readLine();
+				}catch(Exception e){
+					e.printStackTrace();
+					this.listenerStopped = true;
+					System.out.println("stopped");
+				}
+				
 				if(ln != null){
 					System.out.println(ln);
 					this.lastResponse = System.currentTimeMillis();
 					System.out.println("Connection refresh!");
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e1) {
+			e1.printStackTrace();
 		}
 		this.listenerStopped = true;
+		System.out.println("got To the END");
 	}
 	
 }

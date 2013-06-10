@@ -12,7 +12,7 @@ public class ClientStart {
 		String line = "exit";
 		
 		try{
-			s=new Socket("192.168.0.110", 7887);
+			s=new Socket("192.168.0.49", 7887);
 			if(s.isConnected()){
 				while((line = sc.nextLine()) != null && !line.equalsIgnoreCase("exit")){
 					s.getOutputStream().write((line + "\n").getBytes());
